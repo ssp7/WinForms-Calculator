@@ -61,6 +61,9 @@ namespace BasicCalculator
             this.UserInputText.AcceptsTab = true;
             this.UserInputText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.UserInputText.BackColor = System.Drawing.SystemColors.ScrollBar;
+            this.UserInputText.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.UserInputText.ForeColor = System.Drawing.SystemColors.MenuHighlight;
             this.UserInputText.Location = new System.Drawing.Point(-2, -2);
             this.UserInputText.Name = "UserInputText";
             this.UserInputText.Size = new System.Drawing.Size(802, 26);
