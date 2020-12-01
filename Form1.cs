@@ -91,9 +91,183 @@ namespace BasicCalculator
 
         private void CalculateEquation()
         {
-            var useInput = this.UserInputText.Text;
-
+            this.CalculationResultText.Text = ParseOperation();
             FocusInputText();
+        }
+        /// <summary>
+        /// Parses the user equation and calculates the result
+        /// </summary>
+        /// <returns></returns>
+        private string ParseOperation()
+        {
+            try
+            {
+                var input = this.UserInputText.Text;
+                input = input.Replace(" ","");
+
+                var operation = new Operation();
+                var leftSide = true;
+                
+                for(int i = 0; i < input.Length; i++)
+                {
+                   // Check if the current character is a number
+                   if("0123456789.".Any(c => input[i] == c))
+                   {
+                        if (leftSide)
+                        {
+                            operation.LeftSide = AddNumberPart(operation.LeftSide, input[i]);
+                        }
+                        else
+                        {
+                            operation.RightSide = AddNumberPart(operation.RightSide, input[i]);
+                        }
+                   }
+                   // If it is an operator ( + - * / ) then set the operatory type
+                   else if("+-/.*".Any(c => input[i] == c))
+                   {
+                        // if we are on the right side already, we now need to calculate ou current operation
+                        // and set the result to the left side of the next operation
+                        if (!leftSide)
+                        {
+                            var operatorType = GetOperationType(input[i]);
+                            if (operation.RightSide.Length == 0)
+                            {
+                                // Check the operator is not a minus (as they could be creating a negative vlaue
+                                if (operatorType != OperationType.Minus)
+                                {
+                                    throw new InvalidOperationException($"Operator ( + * / or more than one - ) specified without an right side number");
+                                }
+
+                                // If we got here, the operator type is a minus, and there is no left number currently, so add the minus to the number
+                                operation.RightSide += input[i];
+                            }
+                            else
+                            {
+                                // Calculate previous equation and set ot the left side
+                                operation.LeftSide = CalculateOperation(operation);
+
+                                // Set new operator
+                                operation.OperationType = operatorType;
+
+                                // Then clearing the right side
+                                operation.RightSide = string.Empty;
+                            }
+                        }
+                        else
+                        {
+                            var operatorType = GetOperationType(input[i]);
+
+                            if (operation.LeftSide.Length == 0)
+                            {
+                                // Check the operator is not a minus (as they could be creating a negative vlaue
+                                if(operatorType != OperationType.Minus)
+                                {
+                                    throw new InvalidOperationException($"Operator ( + * / or more than one - ) specified without an left side number");
+                                }
+
+                                // If we got here, the operator type is a minus, and there is no left number currently, so add the minus to the number
+                                operation.LeftSide += input[i];
+                            }
+                            else
+                            {
+                                // If we get here, we have a left number and now an operator, so we want to move to the right side
+
+                                // Set the operation type
+                                operation.OperationType = operatorType;
+
+                                // Move to the right side
+                                leftSide = false;
+                            }
+                        }
+                   }
+                }
+                // After we are done parsing, and ther are no exceptions then calculate the current operation
+
+                return CalculateOperation(operation);
+            }
+            catch(Exception e)
+            {
+                return $"invalid equation. {e.Message}";
+            }
+        }
+        /// <summary>
+        /// Calculates an <see cref="Operation"/> and returns the result
+        /// </summary>
+        /// <param name="operation"></param>
+        private string CalculateOperation(Operation operation)
+        {
+            // Storing the number values of the string representations
+            decimal left = 0;
+            decimal right = 0;
+
+            // check if we have a valid left side number
+            if (string.IsNullOrEmpty(operation.LeftSide) || !decimal.TryParse(operation.LeftSide,out left))
+            {
+                throw new InvalidOperationException($"Left side of the equation was not a number. {operation.LeftSide}");
+            }
+
+            if (string.IsNullOrEmpty(operation.RightSide) || !decimal.TryParse(operation.RightSide, out right))
+            {
+                throw new InvalidOperationException($"Right side of the equation was not a number. {operation.RightSide}");
+            }
+            try
+            {
+                switch (operation.OperationType)
+                {
+                    case (OperationType.Add):
+                        return (left + right).ToString();
+                    case (OperationType.Minus):
+                        return (left - right).ToString();
+                    case (OperationType.Multiply):
+                        return (left * right).ToString();
+                    case (OperationType.Divide):
+                        return (left / right).ToString();
+                    default:
+                        throw new InvalidOperationException($"Unkown operator type when calculating operation. {operation.OperationType}");
+                }
+            }
+            catch (Exception e)
+            {
+                throw new InvalidOperationException($"Failed to calulate {operation.LeftSide} {operation.OperationType} {operation.RightSide}. {e.Message}");
+            }
+        }
+        /// <summary>
+        /// Accepts the character and returns the known <see cref="OperationType"/>
+        /// </summary>
+        /// <param name="character">Character to parse</param>
+        /// <returns></returns>
+        private OperationType GetOperationType(char character)
+        {
+            switch (character)
+            {
+                case '+':
+                    return OperationType.Add;
+                case '-':
+                    return OperationType.Minus;
+                case '*':
+                    return OperationType.Multiply;
+                case '/':
+                    return OperationType.Divide;
+                default:
+                    throw new InvalidOperationException($"Uknown operatory type {character}");
+            }
+        }
+
+        /// <summary>
+        /// Attempts to add a new character to the number, checking for valid characters as it goes. 
+        /// </summary>
+        /// <param name="currentNumber">The current number string</param>
+        /// <param name="currentCharacter">The new character to append to the string</param>
+        /// <returns></returns>
+
+        private string AddNumberPart(string currentNumber, char newCharacter)
+        {
+            // Check if there is already a . in the number
+            if(newCharacter == '.' && currentNumber.Contains('.'))
+            {
+                throw new InvalidOperationException($"Number {currentNumber} already contains a . and another cannot be added");
+            }
+            return currentNumber+newCharacter;
         }
 
         #region Number Methods

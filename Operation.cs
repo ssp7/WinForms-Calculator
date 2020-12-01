@@ -11,6 +11,7 @@ namespace BasicCalculator
     /// </summary>
     class Operation
     {
+        #region Public Properties
         /// <summary>
         /// Left side of the operation
         /// </summary>
@@ -30,5 +31,18 @@ namespace BasicCalculator
         /// </summary>
         public Operation InnerOperation { get; set; }
 
+        #endregion
+
+        #region Constuctor
+        /// <summary>
+        /// Default Constructor
+        /// </summary>
+        public Operation()
+        {
+            // Create empty strings instead of having nulls
+            this.LeftSide = string.Empty;
+            this.RightSide = string.Empty;
+        }
+        #endregion
     }
 }
